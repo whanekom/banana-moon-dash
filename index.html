@@ -221,7 +221,7 @@ button:focus-visible,input:focus-visible{outline:calc(var(--u)*.8) solid #fff;ou
 .btn,.chip,#pauseBtn,.pad{border:3px solid white;box-shadow:0 4px 0 #138ccc,0 8px 20px #164e7140}
 .btn.blue{background:linear-gradient(#26bcfa,#0089df);box-shadow:0 5px 0 #0767ae,0 10px 22px #0767ae38}
 .btn.soft,.chip{background:linear-gradient(145deg,#fff,#e5f5ff)}
-#pauseBtn,.pad{background:radial-gradient(circle at 35% 25%,#83e2ffdd,#08a8efdd 62%,#087bc6dd)}
+#pauseBtn,.pad{background:radial-gradient(circle at 35% 25%,#83e2ff99,#08a8ef99 62%,#087bc699)}
 #pauseBtn svg rect{fill:white}.pad svg path{stroke:white}
 #rMenuBtn{width:auto!important;padding:0 calc(var(--u)*4)!important;flex:1!important}
 #rMenuBtn svg{display:none}
@@ -241,7 +241,7 @@ button:focus-visible,input:focus-visible{outline:calc(var(--u)*.8) solid #fff;ou
  #gameName{position:absolute;top:calc(var(--u)*10.5);left:26%;right:17%;text-align:center;color:#087abb;font-size:calc(var(--u)*4.6);font-weight:800;text-shadow:1px 2px white,-1px -1px white}
  #objective{position:absolute;top:calc(var(--u)*17);left:28%;right:18%;background:#ffffffdd;padding:5px 8px;border-radius:99px;text-align:center;font-size:calc(var(--u)*2.7);font-weight:600}
  #altControls{pointer-events:none;justify-content:space-between;align-items:flex-end;padding:12px 24px}
- .altGroup{display:flex;gap:12px;pointer-events:auto}.altButton{width:calc(var(--u)*18);height:calc(var(--u)*18);border:3px solid white;background:linear-gradient(#74dcffdd,#0087d6dd);color:white;border-radius:50%;box-shadow:0 4px 0 #066aab;font-size:calc(var(--u)*9);font-weight:bold;touch-action:none}
+ .altGroup{display:flex;gap:12px;pointer-events:auto}.altButton{width:calc(var(--u)*18);height:calc(var(--u)*18);border:3px solid white;background:linear-gradient(#74dcff99,#0087d699);color:white;border-radius:50%;box-shadow:0 4px 0 #066aab;font-size:calc(var(--u)*9);font-weight:bold;touch-action:none}
  .altButton[hidden]{display:none}#altTip{align-self:flex-end;background:#ffffffe8;border-radius:99px;padding:8px 18px;margin-bottom:10px;font-size:calc(var(--u)*2.8);text-align:center;color:#126699;max-width:42%}
  #howTo{z-index:30;align-items:center;justify-content:center;background:#13477588;backdrop-filter:blur(6px)}#howTo .card{width:75%;max-width:650px;padding:28px;display:block;text-align:center}#howTo p{font-size:calc(var(--u)*3.5);line-height:1.45}#howTo h2{margin-top:0}#howTo .row{justify-content:center}
  @media(max-height:430px){#menu{gap:8px}.gameChoice{padding:5px;border-radius:16px}#gameChoices{gap:12px}.altGroup{gap:6px}#altControls{padding:8px 15px}}
@@ -686,9 +686,10 @@ if (CONFIG.characterSprite){ spriteImg = new Image(); spriteImg.src = CONFIG.cha
    Course builder — designed to be always passable
 ===================================================================== */
 const OB = { train:{w:124,h:58}, blocks:{w:70,h:68}, arch:{w:128,h:0} };
+const JUMP_OB_SCALE = 1.59;
 const L0 = 38000;
 const speedAt = p => 330 + 190*p;
-const JUMP_H = 156;
+const JUMP_H = 156 * JUMP_OB_SCALE;
 const jumpTime = s => clamp(.75*400/Math.max(s,1), .55, 1.0);
 
 function buildCourse(first){
@@ -700,7 +701,7 @@ function buildCourse(first){
   const line = (x, n, y = GROUND-44, step = 58) => { for (let i=0;i<n;i++) star(x+i*step, y); return x + (n-1)*step + 30; };
   const jump = (x, kind, tut) => {
     const t = kind || (rnd() < .5 ? 'train' : 'blocks');
-    const o = add({type:t, x, w:OB[t].w, h:OB[t].h, tut});
+    const o = add({type:t, x, w:OB[t].w * JUMP_OB_SCALE, h:OB[t].h * JUMP_OB_SCALE, scale:JUMP_OB_SCALE, tut});
     const s = sp(x), span = s*jumpTime(s)*.8, cx = x + o.w/2;
     for (let i=0;i<5;i++){ const u = i/4*2 - 1; star(cx + u*span/2, GROUND-60-122*(1-u*u)); }
     return x + o.w;
@@ -754,12 +755,12 @@ function buildCourse(first){
 const G = { mode:'menu', time:0, dist:0, speed:0, objs:[], oi:0, finishX:1, runStars:0, hits:0, combo:0, lastStar:0,
             clean:0, boosts:0, bounced:0, freeze:null, shake:0, flash:0, introT:0, finT:0, menuT:0, px:PX, prevMode:null, first:false };
 const P = { y:GROUND, vy:0, g:0, air:false, duck:0, tumble:0, inv:0, shield:0, power:0, land:0, near:0, happy:0,
-            buffer:0, slideQueued:false, phase:0, blink:3, trail:[], celebrate:0 };
+            buffer:0, slideQueued:false, phase:0, blink:3, trail:[], celebrate:0, flip:0, flipDuration:0 };
 const held = { duck:false };
 const parts = [];
 
 function resetPlayer(){
-  Object.assign(P, {y:GROUND, vy:0, g:0, air:false, duck:0, tumble:0, inv:0, shield:0, power:0, land:0, near:0, happy:0, buffer:0, slideQueued:false, trail:[], celebrate:0});
+  Object.assign(P, {y:GROUND, vy:0, g:0, air:false, duck:0, tumble:0, inv:0, shield:0, power:0, land:0, near:0, happy:0, buffer:0, slideQueued:false, trail:[], celebrate:0, flip:0, flipDuration:0});
 }
 
 /* =====================================================================
@@ -798,9 +799,13 @@ function drawParts(){
 /* =====================================================================
    Player actions
 ===================================================================== */
-function doJump(){
+function doJump(somersault = false){
   if (P.tumble > .3) return;
-  if (P.air){ P.buffer = .16; return; }
+  if (P.air){
+    if (somersault){ P.flipDuration = .58; P.flip = P.flipDuration; P.buffer = 0; }
+    else P.buffer = .16;
+    return;
+  }
   const s = Math.max(G.speed, 240), T = jumpTime(s);
   P.vy = -4*JUMP_H/T; P.g = 8*JUMP_H/(T*T); P.air = true; P.duck = 0; P.slideQueued = false;
   sfx.jump();
@@ -943,7 +948,7 @@ function showHint(kind){
 }
 
 /* ---------- Collisions & pickups ---------- */
-function pbox(){ const h = (P.duck > 0 && !P.air) ? 44 : 84; return {l:PX-22, r:PX+22, t:P.y-h, b:P.y-2}; }
+function pbox(){ const h = (P.duck > 0 && !P.air) ? 60 : 84; return {l:PX-22, r:PX+22, t:P.y-h, b:P.y-2}; }
 function obox(o, rel){
   const x = PX + rel;
   if (o.type === 'arch') return {l:x+10, r:x+o.w-10, t:GROUND-152, b:GROUND-72};
@@ -1028,7 +1033,7 @@ function updatePlayer(dt, onRun){
   const prevSin = Math.sin(P.phase - dt*(G.speed/26));
   if (onRun && !P.air && P.duck <= 0 && G.speed > 60 && Math.sign(prevSin) !== Math.sign(Math.sin(P.phase))) sfx.step();
   P.blink -= dt; if (P.blink < -.12) P.blink = 2 + Math.random()*3;
-  for (const k of ['tumble','inv','land','near','happy','buffer']) if (P[k] > 0) P[k] -= dt;
+  for (const k of ['tumble','inv','land','near','happy','buffer','flip']) if (P[k] > 0) P[k] -= dt;
   if (P.shield > 0){ P.shield -= dt; if (P.shield <= 0) sfx.pop(); }
   if (P.power > 0){ P.power -= dt; if (P.power <= 0){ Music.power = false; P.inv = .8; } }
   if (P.air){
@@ -1336,8 +1341,9 @@ function drawPlayer(x, y, mode){
   if (running && !P.air && !ducking) bob = -Math.abs(Math.sin(P.phase))*6;
   if (running && P.air){ if (P.vy < 0){ sy = 1.1; sx = .92; } else { sy = .98; sx = 1.03; } }
   if (P.land > 0){ const k = P.land/.18; sy = 1 - .22*k; sx = 1 + .18*k; }
-  if (ducking){ sy = .64; sx = 1.2; rot = -.22; }
+  if (ducking){ sy = .82; sx = 1.08; rot = -.14; }
   if (P.tumble > 0 && running){ const k = 1 - P.tumble/.6; rot = -k*Math.PI*2; lift = Math.sin(k*Math.PI)*22; }
+  if (P.flip > 0 && running && P.air){ const k = 1 - P.flip/P.flipDuration; rot += k*Math.PI*2; }
   if (celebrating){ bob = -Math.abs(Math.sin(P.celebrate*6))*14; }
   if (mode === 'idle'){ bob = Math.sin(t*2.2)*1.5; }
 
@@ -1373,7 +1379,7 @@ function drawPlayer(x, y, mode){
     const img=ART[key]||ART.run0;
     // Compensate legacy slide transforms: sprite has its own low silhouette.
     if (ducking) { c.scale(1/sx,1/sy); c.rotate(-rot); }
-    const h=ducking?54:112, w=h*img.naturalWidth/img.naturalHeight;
+    const h=ducking?72:112, w=h*img.naturalWidth/img.naturalHeight;
     c.drawImage(img,-w/2,-h+(ducking?0:bob),w,h);
   } else if (spriteImg && spriteImg.complete && spriteImg.naturalWidth){
     const h = 104, w = h*spriteImg.naturalWidth/spriteImg.naturalHeight;
@@ -1510,6 +1516,7 @@ function render(){
         default: {
           ctx.save();
           if (o.fly){ ctx.translate(sx + o.w/2 + o.fly.x, GROUND - 30 + o.fly.y); ctx.rotate(o.fly.r); ctx.translate(-(sx + o.w/2), -(GROUND-30)); }
+          if (o.scale){ ctx.translate(sx, GROUND); ctx.scale(o.scale, o.scale); ctx.translate(-sx, -GROUND); }
           if (o.type === 'train') drawTrain(sx);
           else if (o.type === 'blocks') drawBlocks(sx);
           else if (o.type === 'arch'){ if (o.fly) { drawArchLegs(sx,o.w); drawArchBeam(sx,o.w); } else { drawArchLegs(sx, o.w); beams.push(sx); } }
@@ -1590,7 +1597,13 @@ function bindPad(el, down, up){
   const u = () => { el.classList.remove('down'); if (up) up(); };
   el.addEventListener('pointerup', u); el.addEventListener('pointercancel', u); el.addEventListener('pointerleave', u);
 }
-bindPad($('padJump'), () => act('jump'));
+let lastJumpPadTap = 0;
+bindPad($('padJump'), () => {
+  const now = performance.now();
+  const somersault = now - lastJumpPadTap < 300;
+  lastJumpPadTap = now;
+  if (somersault) doJump(true); else act('jump');
+});
 bindPad($('padDuck'), () => { held.duck = true; act('duck'); }, () => { held.duck = false; });
 function applyControls(){
   if(G.game && G.game!=='dash') {
